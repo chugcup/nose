@@ -66,7 +66,7 @@ except:
 try:
     from cStringIO import StringIO
 except:
-    from StringIO import StringIO
+    from io import StringIO
 
 
 __all__ = ['DefaultPluginManager', 'PluginManager', 'EntryPointPluginManager',
@@ -372,13 +372,24 @@ class EntryPointPluginManager(PluginManager):
     entry_points = (('nose.plugins.0.10', None),
                     ('nose.plugins', ZeroNinePlugin))
 
+    def getEntryPoints(self, group):
+        try:
+            import importlib.metadata as importlib_metadata     # Python 3.8+
+            return importlib_metadata.entry_points().get(group, ())
+        except ImportError:
+            try:
+                import importlib_metadata                       # Optional <3.8 backport
+                return importlib_metadata.entry_points().get(group, ())
+            except ImportError:
+                from pkg_resources import iter_entry_points
+                return iter_entry_points(group)                 # Legacy API
+
     def loadPlugins(self):
         """Load plugins by iterating the `nose.plugins` entry point.
         """
-        from pkg_resources import iter_entry_points
         loaded = {}
         for entry_point, adapt in self.entry_points:
-            for ep in iter_entry_points(entry_point):
+            for ep in self.getEntryPoints(entry_point):
                 if ep.name in loaded:
                     continue
                 loaded[ep.name] = True
@@ -387,7 +398,7 @@ class EntryPointPluginManager(PluginManager):
                     plugcls = ep.load()
                 except KeyboardInterrupt:
                     raise
-                except Exception, e:
+                except Exception as e:
                     # never want a plugin load to kill the test run
                     # but we can't log here because the logger is not yet
                     # configured
@@ -415,7 +426,15 @@ class BuiltinPluginManager(PluginManager):
         super(BuiltinPluginManager, self).loadPlugins()
 
 try:
-    import pkg_resources
+    # Try multiple imports to see if we can use entry points
+    try:
+        import importlib.metadata       # Python 3.8+
+    except ImportError:
+        try:
+            import importlib_metadata   # Optional <3.8 backport
+        except ImportError:
+            import pkg_resources        # Legacy API
+
     class DefaultPluginManager(BuiltinPluginManager, EntryPointPluginManager):
         pass
 
