@@ -375,7 +375,10 @@ class EntryPointPluginManager(PluginManager):
     def getEntryPoints(self, group):
         try:
             import importlib.metadata as importlib_metadata     # Python 3.8+
-            return importlib_metadata.entry_points().get(group, ())
+            entry_points = importlib_metadata.entry_points()
+            if hasattr(entry_points, 'select'):                 # Python 3.10+
+                return entry_points.select(group=group)
+            return entry_points.get(group, ())
         except ImportError:
             try:
                 import importlib_metadata                       # Optional <3.8 backport
