@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 from commands import getstatusoutput
 from docutils.core import publish_string, publish_parts
 from docutils.nodes import SparseNodeVisitor
@@ -41,7 +43,7 @@ def words(s):
 def is_wiki_word(text):
     return wiki_word_re.match(text)
 
-        
+
 def wiki_word(node):
     orig = text = node.astext()
     # handle module/plugin links -- link to code
@@ -55,11 +57,11 @@ def wiki_word(node):
                 # stop at class names
                 if p[0].upper() == p[0]:
                     break
-                link += '/' + p        
+                link += '/' + p
             node['refuri'] = link
             return True
         node['refuri'] = ''.join(map(ucfirst, words(text)))
-    print "Unknown ref %s -> %s" % (orig, node['refuri'])
+    print("Unknown ref %s -> %s" % (orig, node['refuri']))
     del node['refname']
     node.resolved = True
     return True
@@ -68,14 +70,14 @@ wiki_word.priority = 100
 class WWReader(Reader):
     unknown_reference_resolvers = (wiki_word,)
 
-    
+
 class WikiWriter(Writer):
     def translate(self):
         visitor = WikiVisitor(self.document)
         self.document.walkabout(visitor)
         self.output = visitor.astext()
 
-        
+
 class WikiVisitor(SparseNodeVisitor):
     def __init__(self, document):
         SparseNodeVisitor.__init__(self, document)
@@ -84,19 +86,19 @@ class WikiVisitor(SparseNodeVisitor):
         self.indent = self.old_indent = ''
         self.output = []
         self.preformat = False
-        
+
     def astext(self):
         return ''.join(self.output)
 
     def visit_Text(self, node):
-        #print "Text", node
+        #print("Text", node)
         data = node.astext()
         if not self.preformat:
             data = data.lstrip('\n\r')
             data = data.replace('\r', '')
             data = data.replace('\n', ' ')
         self.output.append(data)
-    
+
     def visit_bullet_list(self, node):
         self.list_depth += 1
         self.list_item_prefix = (' ' * self.list_depth) + '* '
@@ -108,14 +110,14 @@ class WikiVisitor(SparseNodeVisitor):
         else:
             (' ' * self.list_depth) + '* '
         self.output.append('\n\n')
-                           
+
     def visit_list_item(self, node):
         self.old_indent = self.indent
         self.indent = self.list_item_prefix
 
     def depart_list_item(self, node):
         self.indent = self.old_indent
-        
+
     def visit_literal_block(self, node):
         self.output.extend(['{{{', '\n'])
         self.preformat = True
@@ -131,16 +133,16 @@ class WikiVisitor(SparseNodeVisitor):
     def depart_doctest_block(self, node):
         self.output.extend(['\n', '}}}', '\n\n'])
         self.preformat = False
-        
+
     def visit_paragraph(self, node):
         self.output.append(self.indent)
-        
+
     def depart_paragraph(self, node):
         self.output.append('\n\n')
         if self.indent == self.list_item_prefix:
             # we're in a sub paragraph of a list item
             self.indent = ' ' * self.list_depth
-        
+
     def visit_reference(self, node):
         if node.has_key('refuri'):
             href = node['refuri']
@@ -160,7 +162,7 @@ class WikiVisitor(SparseNodeVisitor):
         self.output.append(' ===\n\n')
         self.list_depth = 0
         self.indent = ''
-        
+
     def visit_title(self, node):
         self.output.append('== ')
 
@@ -168,7 +170,7 @@ class WikiVisitor(SparseNodeVisitor):
         self.output.append(' ==\n\n')
         self.list_depth = 0
         self.indent = ''
-        
+
     def visit_title_reference(self, node):
         self.output.append("`")
 
@@ -180,16 +182,16 @@ class WikiVisitor(SparseNodeVisitor):
 
     def depart_emphasis(self, node):
         self.output.append('*')
-        
+
     def visit_literal(self, node):
         self.output.append('`')
-        
+
     def depart_literal(self, node):
         self.output.append('`')
 
 
 def runcmd(cmd):
-    print cmd
+    print(cmd)
     (status,output) = getstatusoutput(cmd)
     if status != success:
         raise Exception(output)
@@ -280,22 +282,22 @@ def mkwiki(path):
             section(nose.__doc__, 'Finding and running tests')),
         # FIXME finish example plugin doc... add some explanation
         'ExamplePlugin': example_plugin(),
-        
+
         'NosetestsUsage': usage(),
         }
 
     current = os.getcwd()
     w = Wiki(path)
     for page, doc in pages.items():
-        print "====== %s ======" % page
+        print("====== %s ======" % page)
         w.update_docs(page, doc)
-        print "====== %s ======" % page
+        print("====== %s ======" % page)
     os.chdir(current)
 
 
 class Wiki(object):
     doc_re = re.compile(r'(.*?)' + div, re.DOTALL)
-    
+
     def __init__(self, path):
         self.path = path
         self.newpages = []
@@ -306,7 +308,7 @@ class Wiki(object):
         if not page.endswith('.wiki'):
             page = page + '.wiki'
         return page
-        
+
     def get_page(self, page):
         headers = []
         content = []
@@ -323,7 +325,7 @@ class Wiki(object):
                         content.append(line)
                 else:
                     content.append(line)
-            fh.close()            
+            fh.close()
             return (headers, ''.join(content))
         except IOError:
             self.newpages.append(page)
@@ -333,32 +335,32 @@ class Wiki(object):
         wikified = docs + div
         if not page_src:
             new_src = wikified + warning
-            print "! Adding new page"
+            print("! Adding new page")
         else:
             m = self.doc_re.search(page_src)
             if m:
-                print "! Updating doc section"
+                print("! Updating doc section")
                 new_src = self.doc_re.sub(wikified, page_src, 1)
             else:
-                print "! Adding new doc section"
+                print("! Adding new doc section")
                 new_src = wikified + page_src
         if new_src == page_src:
-            print "! No changes"
-            return        
+            print("! No changes")
+            return
         # Restore any headers (lines marked by # at start of file)
         if headers:
             new_src = ''.join(headers) + '\n' + new_src
         fh = file(self.filename(page), 'w')
         fh.write(new_src)
         fh.close()
-        
+
     def update_docs(self, page, doc):
         headers, current = self.get_page(page)
         self.set_docs(page, headers, current, doc)
         if page in self.newpages:
             runcmd('svn add %s' % self.filename(page))
 
-            
+
 def findwiki(root):
     if not root or root is '/': # not likely to work on windows
         raise ValueError("wiki path not found")
@@ -374,6 +376,6 @@ def main():
     path = findwiki(os.path.abspath(__file__))
     mkwiki(path)
 
-    
+
 if __name__ == '__main__':
     main()

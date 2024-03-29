@@ -69,7 +69,7 @@ class TextTestResult(BaseTextTestResult):
         except TypeError:
             # 2.3 compat
             exc_info = self._exc_info_to_string(err)
-        for cls, (storage, label, isfail) in self.errorClasses.items():
+        for cls, (storage, label, isfail) in list(self.errorClasses.items()):
             #if 'Skip' in cls.__name__ or 'Skip' in ec.__name__:
             #    from nose.tools import set_trace
             #    set_trace()
@@ -108,7 +108,7 @@ class TextTestResult(BaseTextTestResult):
         """Overrides to print all errorClasses errors as well.
         """
         BaseTextTestResult.printErrors(self)
-        for cls in self.errorClasses.keys():
+        for cls in list(self.errorClasses.keys()):
             storage, label, isfail = self.errorClasses[cls]
             if isfail:
                 self.printErrorList(label, storage)
@@ -131,7 +131,7 @@ class TextTestResult(BaseTextTestResult):
         writeln()
 
         summary = {}
-        eckeys = self.errorClasses.keys()
+        eckeys = list(self.errorClasses.keys())
         for cls in eckeys:
             storage, label, isfail = self.errorClasses[cls]
             count = len(storage)
@@ -147,7 +147,7 @@ class TextTestResult(BaseTextTestResult):
             write("FAILED")
         else:
             write("OK")
-        items = summary.items()
+        items = list(summary.items())
         if items:
             items.sort()
             write(" (")
@@ -164,7 +164,7 @@ class TextTestResult(BaseTextTestResult):
         """
         if self.errors or self.failures:
             return False
-        for cls in self.errorClasses.keys():
+        for cls in list(self.errorClasses.keys()):
             storage, label, isfail = self.errorClasses[cls]
             if not isfail:
                 continue

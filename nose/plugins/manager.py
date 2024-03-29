@@ -60,11 +60,11 @@ from nose.plugins.base import IPluginInterface
 from nose.pyversion import sort_list
 
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except:
     import pickle
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except:
     from io import StringIO
 
