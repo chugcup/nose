@@ -3,13 +3,13 @@
 #
 # create and upload a release
 
-from __future__ import print_function
+
 
 import os
 import sys
-import urllib
-from urllib2 import urlopen
-from commands import getstatusoutput
+import urllib.request, urllib.parse, urllib.error
+from urllib.request import urlopen
+from subprocess import getstatusoutput
 
 success = 0
 
@@ -70,7 +70,7 @@ def main():
     if not SIMULATE:
         u = urlopen(rtd,
                     # send dummy params to force a POST
-                    urllib.urlencode({'build': 1}))
+                    urllib.parse.urlencode({'build': 1}))
         print(u.read())
         u.close()
 

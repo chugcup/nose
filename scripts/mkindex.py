@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+
 
 from docutils.core import publish_string, publish_parts
 from docutils.readers.standalone import Reader
@@ -16,7 +16,7 @@ import time
 def doc_word(node):
     print("Unknown ref %s" % node.astext())
     node['refuri'] = 'doc/' \
-        + '_'.join(map(lambda s: s.lower(), node.astext().split(' '))) \
+        + '_'.join([s.lower() for s in node.astext().split(' ')]) \
         + '.html'
     del node['refname']
     node.resolved = True

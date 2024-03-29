@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
 
-from commands import getstatusoutput
+
+from subprocess import getstatusoutput
 from docutils.core import publish_string, publish_parts
 from docutils.nodes import SparseNodeVisitor
 from docutils.readers.standalone import Reader
@@ -144,9 +144,9 @@ class WikiVisitor(SparseNodeVisitor):
             self.indent = ' ' * self.list_depth
 
     def visit_reference(self, node):
-        if node.has_key('refuri'):
+        if 'refuri' in node:
             href = node['refuri']
-        elif node.has_key('refid'):
+        elif 'refid' in node:
             href = '#' + node['refid']
         else:
             href = None
@@ -288,7 +288,7 @@ def mkwiki(path):
 
     current = os.getcwd()
     w = Wiki(path)
-    for page, doc in pages.items():
+    for page, doc in list(pages.items()):
         print("====== %s ======" % page)
         w.update_docs(page, doc)
         print("====== %s ======" % page)
