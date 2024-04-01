@@ -118,6 +118,9 @@ class ResultProxy(object):
         if hasattr(self.result, "beforeTest"):
             self.result.beforeTest(self.test)
 
+    def addDuration(self, test, elapsed):   # For Python >= 3.12
+        pass
+
     def addError(self, test, err):
         self.assertMyTest(test)
         plugins = self.plugins
